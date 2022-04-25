@@ -9,7 +9,7 @@ var timeInterval = null;
 var timeLeft = 0;
 
 //initial customizable values
-var timeLimit = 60;
+var timeLimit = 10;
 
 var wordOptions = [
   "test",
