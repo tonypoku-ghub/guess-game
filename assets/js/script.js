@@ -6,11 +6,36 @@ var word_blanks = document.querySelector(".word-blanks");
 var win_display = document.querySelector(".win");
 var lose_display = document.querySelector(".lose");
 var timeInterval = null;
+var timeLeft = 0;
 
 //initial customizable values
-var wordOptions = ["test", "climb"];
 var timeLimit = 60;
-var timeLeft = 0;
+
+var wordOptions = [
+  "test",
+  "climb",
+  "Angry",
+  "Elephant",
+  "Pinch",
+  "Baby",
+  "Fish",
+  "Reach",
+  "Ball",
+  "Flick",
+  "Remote",
+  "Baseball",
+  "Football",
+  "Roll",
+  "Basketball",
+  "Fork",
+  "Sad",
+  "Bounce",
+  "Giggle",
+  "Scissors",
+  "Cat",
+  "Golf",
+  "Skip",
+];
 
 // The computer generated word
 var pickWord = [];
@@ -20,7 +45,9 @@ var guessWord = [];
 
 // listen for keypress
 document.addEventListener("keydown", function onKeyPress(event) {
-  if (event.key && timeLeft > 0) {
+  event.preventDefault();
+
+  if (event.key && timeLeft > 0 && guessWord.includes("_")) {
     console.log("key pressed: " + event.key);
 
     printGuessWord(event.key);
@@ -70,15 +97,15 @@ function countdown() {
 
 function pickRandomWord() {
   // chooses random string from array of word options
-  index = Math.floor(Math.random(wordOptions) * length);
+  index = Math.floor(Math.random(wordOptions) * wordOptions.length);
 
   // splits array into single string
   singleWord = wordOptions[index];
-  console.log(singleWord);
+  //console.log(singleWord);
 
   // splits string into single characters//
-  chars = singleWord.split("");
-  console.log(chars);
+  chars = singleWord.toLowerCase().split("");
+  //console.log(chars);
 
   return chars;
 }
@@ -91,7 +118,7 @@ function displayMessage(message) {
 // Reprint guess word on screen, after key press, to see if guess was correct
 function printGuessWord(guessChar) {
   for (var i = 0; i < pickWord.length; i++) {
-    if (pickWord[i] === guessChar) {
+    if (pickWord[i].toLowerCase() === guessChar.toLowerCase()) {
       guessWord[i] = guessChar;
     } else {
       if (!guessWord[i]) {
@@ -122,10 +149,11 @@ function tallyResults() {
     displayMessage("Game Over - You Lost");
   }
 
-  win_display.textContent = playerScore.wins;
-  lose_display.textContent = playerScore.losses;
+  refreshStats();
 
-  initGame();
+  saveStats();
+
+  endGame();
 }
 
 // Initialize the game
@@ -134,17 +162,33 @@ function initGame() {
   guessWord = "";
 
   timer_count.textContent = timeLeft;
-  displayMessage("seconds remaining");
+  //displayMessage("seconds remaining");
 
   if (timeInterval) {
     clearInterval(timeInterval);
   }
 }
 
+function endGame() {
+  timer_count.textContent = timeLeft;
+
+  if (timeInterval) {
+    clearInterval(timeInterval);
+  }
+}
+
+// Display stats on screen
+function refreshStats() {
+  win_display.textContent = playerScore.wins;
+  lose_display.textContent = playerScore.losses;
+}
+
 // Reset game and score
 function resetGame() {
   initGame();
   playerScore.resetScore();
+  saveStats();
+  refreshStats();
 }
 
 playerScore = {
@@ -158,7 +202,29 @@ playerScore = {
     }
   },
   resetScore: function () {
-    wins = 0;
-    losses = 0;
+    this.wins = 0;
+    this.losses = 0;
   },
 };
+
+function saveStats() {
+  // Save to local storage
+  localStorage.setItem("guess-game-player-stats", JSON.stringify(playerScore));
+}
+
+function loadStats() {
+  // Get stored stats from localStorage
+  var storedStats = JSON.parse(localStorage.getItem("guess-game-player-stats"));
+
+  // If stats were retrieved from localStorage, update playerScore
+  if (storedStats !== null) {
+    playerScore.wins = storedStats.wins;
+    playerScore.losses = storedStats.losses;
+    refreshStats();
+  }
+
+  timer_count.textContent = timeLimit;
+}
+
+// Call load stats when page loads
+loadStats();
